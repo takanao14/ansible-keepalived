@@ -1,0 +1,12 @@
+all:
+  hosts:
+    centos1: # replace master-server
+      keepalived_shared_ip: 172.16.113.250
+      keepalived_check_process: keepalived
+      keepalived_role: master
+      keepalived_shared_iface: ens33
+    centos2: # replace slave-server
+      keepalived_shared_ip: 172.16.113.250
+      keepalived_check_process: keepalived
+      keepalived_role: slave
+      keepalived_shared_iface: ens33

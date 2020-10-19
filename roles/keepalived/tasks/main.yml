@@ -1,0 +1,39 @@
+---
+# This role installs and sets up keepalived
+
+- name: Install keepalived (Centos)
+  yum: name=keepalived state=present
+  when: ansible_os_family == "RedHat"
+  tags: keepalived
+  notify: restart keepalived
+
+- name: Install keepalived (debian/ubuntu)
+  apt: name=keepalived state=latest
+  when: ansible_os_family == "Debian"
+  tags: keepalived
+  notify: restart keepalived
+
+- name: chk_service script shell
+  template: 
+    src: check_script.sh.j2 
+    dest: /etc/keepalived/check_script.sh
+    mode: 0755
+    owner: root
+    group: root
+  tags: keepalived
+  notify: restart keepalived
+
+- name: Configurar configuració de keepalived
+  template: src=keepalived.conf.j2 dest=/etc/keepalived/keepalived.conf
+  tags: keepalived
+  notify: restart keepalived
+
+- name: Start keepalived
+  service: name=keepalived state=started enabled=yes
+  tags: keepalived
+
+- name: add firewall rule vrrp-input
+  shell: firewall-cmd --permanent --direct --add-rule ipv4 filter OUTPUT 1 -o {{ keepalived_shared_iface }} -d 224.0.0.18 -p vrrp -j ACCEPT
+
+- name: add firewall rule vrrp-output
+  shell: firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT 1 -i {{ keepalived_shared_iface }} -d 224.0.0.18 -p vrrp -j ACCEPT
